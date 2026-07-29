@@ -1,5 +1,5 @@
 const api = require('@actual-app/api');
-const { closeBudget, ensurePayee, getAccountBalance, getAccountNote, getTagValue, openBudget } = require('./utils');
+const { closeBudget, getAccountNote, getTagValue, openBudget } = require('./utils');
 require("dotenv").config();
 
 async function getZestimate(zillowUrl) {
@@ -24,8 +24,6 @@ async function getZestimate(zillowUrl) {
 (async function() {
     await openBudget();
 
-    const payeeId = await ensurePayee(process.env.HASDATA_PAYEE_NAME || 'Zestimate');
-
     const accounts = await api.getAccounts();
     for (const account of accounts) {
         if (account.closed) continue;
@@ -42,24 +40,10 @@ async function getZestimate(zillowUrl) {
             continue;
         }
 
-        const value = zestimate * 100;
-        const balance = await getAccountBalance(account);
-        const diff = value - balance;
-
         console.log('Zestimate:', zestimate);
-        console.log('Balance:', balance / 100);
-        console.log('Difference:', diff / 100);
-
-        if (diff !== 0) {
-            await api.importTransactions(account.id, [{
-                date: new Date(),
-                payee: payeeId,
-                amount: diff,
-                cleared: true,
-                reconciled: true,
-                notes: `Update Zestimate to ${zestimate}`,
-            }]);
-        }
+        await api.updateAccount(account.id, { balance_current: zestimate * 100 });
+        console.log('Updated balance_current to', zestimate);
     }
+
     await closeBudget();
 })();
