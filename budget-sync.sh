@@ -23,7 +23,10 @@ run_sync() {
     local status=$?
     cat "$tmp" >> "$LOG"
 
-    if [ $status -ne 0 ] || grep -qiE "error|failed|axios|unable to get" "$tmp"; then
+    # Avoid matching benign output like `{ errors: [] }` from Actual/Plaid logs.
+    if [ $status -ne 0 ] || grep -qiE \
+        'ACCOUNT_NEEDS_ATTENTION|need re-authentication|ECONNREFUSED|ENOTFOUND|axios|unable to get|token exchange failed|all tokens failed|sync completed with errors|^\s*error_type:' \
+        "$tmp"; then
         notify "$name"
     fi
     rm "$tmp"
