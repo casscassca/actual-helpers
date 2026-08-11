@@ -176,10 +176,30 @@ const Utils = {
   },
 
   setAccountNote: async function (account, note) {
-    api.internal.send('notes-save', {
-        id: `account-${account.id}`,
-        note: note,
+    await api.updateNote(`account-${account.id}`, note);
+  },
+
+  // Central US, e.g. "Aug 10, 2026, 9:01 PM CDT"
+  formatLastUpdated: function (date = new Date()) {
+    return date.toLocaleString('en-US', {
+      timeZone: 'America/Chicago',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
     });
+  },
+
+  // Stamp last_updated:<readable Central time> into an account note.
+  // Kept at the end so spaces in the value don't collide with other tags.
+  stampAccountLastUpdated: async function (account) {
+    const existing = ((await Utils.getAccountNote(account)) || '')
+      .replace(/\s*\blast_updated:.+$/, '')
+      .trim();
+    const stamp = `last_updated:${Utils.formatLastUpdated()}`;
+    await Utils.setAccountNote(account, existing ? `${existing} ${stamp}` : stamp);
   },
 
   getSimpleFinID: async function (account) {

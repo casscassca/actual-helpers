@@ -1,5 +1,5 @@
 const api = require('@actual-app/api');
-const { closeBudget, getAccountNote, getTagValue, openBudget } = require('./utils');
+const { closeBudget, getAccountNote, getTagValue, openBudget, stampAccountLastUpdated } = require('./utils');
 require("dotenv").config();
 
 async function getZestimate(zillowUrl) {
@@ -47,6 +47,7 @@ async function getZestimate(zillowUrl) {
         console.log('Adjusted value:', adjustedValue);
 
         await api.updateAccount(account.id, { balance_current: Math.round(adjustedValue * 100) });
+        await stampAccountLastUpdated(account);
         console.log('Updated balance_current to', adjustedValue);
     }
     await closeBudget();
