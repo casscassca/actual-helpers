@@ -1,7 +1,19 @@
 // Script to run all bank syncs
 // Useful for running bank syncs on a daily/weekly schedule
-const { closeBudget, openBudget, stampAccountLastUpdated } = require('./utils');
+const {
+  closeBudget,
+  openBudget,
+  stampAccountLastUpdated,
+  setSyncStatusPrefix,
+} = require('./utils');
 const api = require('@actual-app/api');
+
+const FAIL_STATUSES = new Set([
+  'failed',
+  'reauth-required',
+  'rate-limit-exceeded',
+  'timed-out',
+]);
 
 (async () => {
   await openBudget();
@@ -15,20 +27,27 @@ const api = require('@actual-app/api');
     process.exitCode = 1;
   }
 
-  // Stamp notes for accounts Actual itself marked as synced this run.
-  // last_sync is set per-account on success, so this covers partial failures.
+  // Per-account: stamp notes + flip ✓/Ｘ from Actual's last_sync / bank_sync_status.
   const cutoff = Date.now() - 10 * 60 * 1000;
   const result = await api.runQuery(
     api.q('accounts')
       .filter({ closed: false })
-      .select(['id', 'name', 'last_sync', 'account_sync_source'])
+      .select(['id', 'name', 'last_sync', 'account_sync_source', 'bank_sync_status'])
   );
   for (const account of result.data) {
-    if (!account.account_sync_source || !account.last_sync) continue;
-    const lastSync = parseInt(account.last_sync, 10);
-    if (Number.isNaN(lastSync) || lastSync < cutoff) continue;
-    await stampAccountLastUpdated(account);
-    console.log(`Stamped last_updated on ${account.name}`);
+    if (!account.account_sync_source) continue;
+
+    const lastSync = account.last_sync ? parseInt(account.last_sync, 10) : NaN;
+    const syncedThisRun = !Number.isNaN(lastSync) && lastSync >= cutoff;
+
+    if (syncedThisRun) {
+      await stampAccountLastUpdated(account);
+      await setSyncStatusPrefix(account, true);
+      console.log(`OK ${account.name}`);
+    } else if (FAIL_STATUSES.has(account.bank_sync_status)) {
+      await setSyncStatusPrefix(account, false);
+      console.log(`FAIL ${account.name} (${account.bank_sync_status})`);
+    }
   }
 
   await closeBudget();

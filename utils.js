@@ -202,6 +202,33 @@ const Utils = {
     await Utils.setAccountNote(account, existing ? `${existing} ${stamp}` : stamp);
   },
 
+  // Sync status prefixes in account names: "✓ Guideline" / "Ｘ Guideline"
+  SYNC_OK_PREFIX: '✓',
+  SYNC_FAIL_PREFIX: 'Ｘ',
+  SYNC_PREFIX_RE: /^[✓Ｘ]\s+/,
+
+  stripSyncPrefix: function (name) {
+    return (name || '').replace(Utils.SYNC_PREFIX_RE, '');
+  },
+
+  hasSyncPrefix: function (name) {
+    return Utils.SYNC_PREFIX_RE.test(name || '');
+  },
+
+  // Only renames accounts that already start with ✓ or Ｘ.
+  setSyncStatusPrefix: async function (account, ok) {
+    if (!account?.id || !Utils.hasSyncPrefix(account.name)) {
+      return account;
+    }
+    const newName = `${ok ? Utils.SYNC_OK_PREFIX : Utils.SYNC_FAIL_PREFIX} ${Utils.stripSyncPrefix(account.name)}`;
+    if (newName === account.name) {
+      return account;
+    }
+    await api.updateAccount(account.id, { name: newName });
+    account.name = newName;
+    return account;
+  },
+
   getSimpleFinID: async function (account) {
     const data = await api.runQuery(
       api.q('accounts')
