@@ -59,3 +59,28 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
+
+  # Pulls the new image onto the Pi right after publish.
+  # Required repo secrets: PI_SSH_HOST, PI_SSH_USER, PI_SSH_KEY
+  # Optional: PI_SSH_PORT (default 22), PI_HELPERS_DIR (default /home/cassandrameijers/actual-helpers)
+  deploy-pi:
+    needs: publish-docker-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy new image on Pi
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.PI_SSH_HOST }}
+          username: ${{ secrets.PI_SSH_USER }}
+          key: ${{ secrets.PI_SSH_KEY }}
+          port: ${{ secrets.PI_SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.PI_HELPERS_DIR || '/home/cassandrameijers/actual-helpers' }}"
+            # Host files (compose, run.sh) when you push to main
+            git pull --ff-only || true
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
+            docker ps --filter name=actual-helpers --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
