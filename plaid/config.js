@@ -57,7 +57,10 @@ function getConf(username) {
     const appConfig = getAppConfigFromEnv();
     const key = `${username}_${appConfig.PLAID_ENV}`;
 
+    // Keep the historical Conf directory so existing Plaid tokens/mappings still resolve:
+    // ~/.config/actualplaid-cli-nodejs/default_production.json
     const tmp = new Conf({
+        projectName: "actualplaid-cli",
         configName: key
     });
     tmp.set("user", key);

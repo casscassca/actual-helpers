@@ -1,13 +1,22 @@
 #!/bin/bash
 # Single cron entrypoint for all Actual helper jobs.
-# Schedule: e.g. 0 8 * * * /home/pi/actual-helpers/run.sh
+# Default: run inside the actual-helpers Docker container.
+# Override: NODE=node ./run.sh  (bare metal)
 cd "$(dirname "$0")"
 set -a
 source .env
 set +a
 
 LOG="$(pwd)/budget-sync.log"
-NODE="${NODE:-node}"
+
+# Prefer docker exec when the container is running; else bare node.
+if [ -n "${NODE:-}" ]; then
+    RUN="$NODE"
+elif docker ps --format '{{.Names}}' | grep -qx 'actual-helpers'; then
+    RUN="docker exec actual-helpers node"
+else
+    RUN="node"
+fi
 
 notify() {
     curl -s -X POST -H "Authorization: Bearer $HA_TOKEN" \
@@ -37,15 +46,15 @@ run_sync() {
 
 echo "=== $(date) ===" >> "$LOG"
 
-run_sync "SimpleFin" "$NODE jobs/simplefin.js"
-run_sync "Plaid" "$NODE jobs/plaid.js"
-run_sync "Questrade" "$NODE jobs/questrade.js"
+run_sync "SimpleFin" "$RUN jobs/simplefin.js"
+run_sync "Plaid" "$RUN jobs/plaid.js"
+run_sync "Questrade" "$RUN jobs/questrade.js"
 
 # Monthly on the 5th and 20th
 if [ "$(date +%d)" = "05" ] || [ "$(date +%d)" = "20" ]; then
-    run_sync "Zestimate" "$NODE jobs/zestimate.js"
+    run_sync "Zestimate" "$RUN jobs/zestimate.js"
 fi
 
 # Interest is typically run on a separate schedule (loan interest day).
 # Uncomment or cron separately:
-# run_sync "Interest" "$NODE jobs/interest.js"
+# run_sync "Interest" "$RUN jobs/interest.js"

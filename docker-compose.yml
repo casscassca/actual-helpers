@@ -6,3 +6,5 @@ services:
     volumes:
       - ./cache:/usr/src/app/cache
       - ./data:/usr/src/app/data
+      # Plaid Conf store (access tokens + Actual account mappings)
+      - ${HOME}/.config/actualplaid-cli-nodejs:/home/node/.config/actualplaid-cli-nodejs
