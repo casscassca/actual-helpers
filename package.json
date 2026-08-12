@@ -1,10 +1,33 @@
 {
+  "name": "actual-helpers",
+  "private": true,
+  "description": "Consolidated Actual Budget helper jobs (SimpleFin, Plaid, Questrade, interest, zestimate)",
+  "scripts": {
+    "simplefin": "node jobs/simplefin.js",
+    "plaid": "node jobs/plaid.js",
+    "questrade": "node jobs/questrade.js",
+    "interest": "node jobs/interest.js",
+    "zestimate": "node jobs/zestimate.js",
+    "sync": "./run.sh"
+  },
   "dependencies": {
     "@actual-app/api": "latest",
+    "@fastify/static": "^5.0.0",
+    "better-opn": "^2.0.0",
     "chromedriver": "^131.0.4",
+    "conf": "^7.1.1",
+    "date-fns": "^2.15.0",
     "dotenv": "^16.4.5",
+    "fastify": "^3.1.1",
+    "inquirer": "^7.3.3",
     "jsdom": "^24.1.0",
+    "meow": "^7.0.1",
+    "plaid": "^23.0.0",
     "readline-sync": "^1.4.10",
-    "selenium-webdriver": "^4.27.0"
+    "selenium-webdriver": "^4.27.0",
+    "terminal-link": "^2.1.1"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

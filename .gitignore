@@ -2,6 +2,14 @@
 simplefin.credentials
 /cache/*/
 
+# Runtime secrets / tokens (keep data/.gitkeep)
+/data/*
+!/data/.gitkeep
+questrade-token-*.json
+temp_data_*/
+temp_data_actual/
+temp_data_questrade/
+
 # temp files
 .*.swp
 .DS_Store

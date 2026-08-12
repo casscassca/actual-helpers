@@ -1,7 +1,7 @@
 const api = require('@actual-app/api');
 const jsdom = require("jsdom");
-const { closeBudget, ensurePayee, getAccountBalance, getAccountNote, getLastTransactionDate, getTagValue, openBudget, setAccountNote, sleep } = require('./utils');
-require("dotenv").config();
+const { closeBudget, ensurePayee, getAccountBalance, getAccountNote, getLastTransactionDate, getTagValue, openBudget, setAccountNote, sleep } = require('../lib/actual');
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 async function getKBB(URL) {
   URL = URL + '&format=html&requesteddataversiondate=' + new Date().toLocaleDateString();

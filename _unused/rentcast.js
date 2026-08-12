@@ -1,7 +1,7 @@
 const api = require('@actual-app/api');
 const jsdom = require("jsdom");
-const { closeBudget, ensurePayee, getAccountBalance, getAccountNote, getTagValue, openBudget, showPercent, sleep } = require('./utils');
-require("dotenv").config();
+const { closeBudget, ensurePayee, getAccountBalance, getAccountNote, getTagValue, openBudget, showPercent, sleep } = require('../lib/actual');
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 async function getRentCast(URL) {
     console.log('RentCast URL:', URL);

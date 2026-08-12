@@ -1,4 +1,4 @@
-const { closeBudget, openBudget, getTransactions, getAccountNote, getAccountBalance, getTagValue, ensurePayee } = require('./utils');
+const { closeBudget, openBudget, getTransactions, getAccountNote, getAccountBalance, getTagValue, ensurePayee } = require('../lib/actual');
 const api = require('@actual-app/api');
 
 function getValueAtPath(obj, path) {
