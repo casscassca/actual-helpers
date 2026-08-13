@@ -9,6 +9,7 @@
     "interest": "node jobs/interest.js",
     "zestimate": "node jobs/zestimate.js",
     "servicemac": "node jobs/servicemac.js",
+    "finley": "node jobs/finley.js",
     "backup": "node jobs/backup.js",
     "sync": "./run.sh"
   },

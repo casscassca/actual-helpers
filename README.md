@@ -6,7 +6,7 @@ Personal Actual Budget sync jobs (SimpleFin, Plaid, Questrade, interest, Zestima
 
 ```text
 run.sh              cron entrypoint (HA notify on failure)
-jobs/               simplefin, plaid, questrade, interest, zestimate, backup
+jobs/               simplefin, plaid, questrade, interest, zestimate, servicemac, finley, backup
 plaid/              Plaid Link CLI + UI
 lib/actual.js       shared Actual helpers
 data/               Questrade token files (gitignored)
