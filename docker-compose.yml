@@ -3,8 +3,11 @@ services:
     container_name: actual-helpers
     image: ghcr.io/casscassca/actual-helpers:latest
     env_file: .env
+    extra_hosts:
+      # Reach Actual on the Pi host (:5006) without Cloudflare
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./cache:/usr/src/app/cache
       - ./data:/usr/src/app/data
-      # Plaid Conf store (access tokens + Actual account mappings)
+      # Plaid Conf (access tokens + Actual account mappings)
       - ${HOME}/.config/actualplaid-cli-nodejs:/home/node/.config/actualplaid-cli-nodejs
