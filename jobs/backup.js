@@ -8,7 +8,7 @@ const path = require('path');
 const { closeBudget, openBudget } = require('../lib/actual');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-const remoteName = process.env.RCLONE_REMOTE || 'ActualBudgetBackup';
+const remoteName = process.env.RCLONE_REMOTE || 'gdrive';
 const remoteDir = (process.env.RCLONE_REMOTE_DIR || 'backups/actual').replace(/\/+$/, '');
 const keepDays = parseInt(process.env.BACKUP_KEEP_DAYS || '30', 10);
 const dest = `${remoteName}:${remoteDir}`;

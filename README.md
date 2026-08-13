@@ -10,7 +10,6 @@ jobs/               simplefin, plaid, questrade, interest, zestimate, backup
 plaid/              Plaid Link CLI + UI
 lib/actual.js       shared Actual helpers
 data/               Questrade token files (gitignored)
-rclone/             rclone.conf for Google Drive (gitignored)
 _unused/            placeholders (kbb, rentcast, …)
 example.env         env template
 docker-compose.yml  Pi container
@@ -43,20 +42,10 @@ On the Pi, use `ACTUAL_SERVER_URL=http://host.docker.internal:5006` so helpers s
 
 Same approach as [actualbudget-backup](https://github.com/rodriguestiago0/actualbudget-backup): export a zip with `@actual-app/api`, then `rclone copy` to Drive. It runs at the end of `run.sh`.
 
-One-time rclone setup on the Pi (needs a browser on your laptop):
+The container uses the Pi’s existing rclone login (`~/.config/rclone/rclone.conf`, remote `gdrive`). After deploy:
 
 ```bash
-mkdir -p ~/actual-helpers/rclone
-docker compose up -d
-docker exec -it actual-helpers rclone config
-```
-
-Create a remote named `ActualBudgetBackup`, type `drive`. When it asks “Use auto config?”, say **n** (the Pi has no browser). Open the printed URL on your Mac, sign in, paste the token back.
-
-Then:
-
-```bash
-docker exec actual-helpers rclone lsd ActualBudgetBackup:
+docker exec actual-helpers rclone lsd gdrive:backups/actual
 docker exec actual-helpers node jobs/backup.js
 ```
 

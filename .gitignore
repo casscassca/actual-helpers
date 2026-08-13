@@ -2,10 +2,6 @@
 simplefin.credentials
 /cache/*/
 
-# rclone Google Drive token (keep rclone/.gitkeep)
-/rclone/*
-!/rclone/.gitkeep
-
 # Runtime secrets / tokens (keep data/.gitkeep)
 /data/*
 !/data/.gitkeep
