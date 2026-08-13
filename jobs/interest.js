@@ -39,8 +39,12 @@ function daysInYear(year) {
         cutoff.setMonth(cutoff.getMonth() - 1);
         cutoff.setDate(cutoff.getDate() + 1);
 
-        const lastDate = await getLastTransactionDate(account, cutoff);
-        if (!lastDate) continue;
+        // Include outflows (loan starting balance is usually negative).
+        const lastDate = await getLastTransactionDate(account, cutoff, true);
+        if (!lastDate) {
+          console.log(`== ${account.name} == skipped (no transactions before cutoff)`);
+          continue;
+        }
         const daysPassed = Math.round(
           (interestTransactionDate.setHours(0, 0, 0, 0) - new Date(lastDate).setHours(0, 0, 0, 0)) / 86400000
         );
