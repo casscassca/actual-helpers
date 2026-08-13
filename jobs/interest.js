@@ -86,7 +86,6 @@ function daysInYear(year) {
             payee: payeeId,
             amount: compoundedInterest,
             cleared: true,
-            notes: `Interest for ${daysPassed} days, ${balance / 100.0} at ${interestRate} (${isDaily ? "daily" : "monthly"})`,
           }]);
         }
       }
