@@ -1,15 +1,16 @@
 # actual-helpers
 
-Personal Actual Budget sync jobs (SimpleFin, Plaid, Questrade, interest, Zestimate).
+Personal Actual Budget sync jobs (SimpleFin, Plaid, Questrade, interest, Zestimate, Google Drive backup).
 
 ## Layout
 
 ```text
 run.sh              cron entrypoint (HA notify on failure)
-jobs/               simplefin, plaid, questrade, interest, zestimate
+jobs/               simplefin, plaid, questrade, interest, zestimate, backup
 plaid/              Plaid Link CLI + UI
 lib/actual.js       shared Actual helpers
 data/               Questrade token files (gitignored)
+rclone/             rclone.conf for Google Drive (gitignored)
 _unused/            placeholders (kbb, rentcast, …)
 example.env         env template
 docker-compose.yml  Pi container
@@ -30,7 +31,36 @@ docker exec actual-helpers node jobs/questrade.js
 30 4 1 * * docker exec actual-helpers node jobs/interest.js >> /home/cassandrameijers/actual-helpers/interest.log 2>&1
 ```
 
+Remove the old hourly backup once this job is working:
+
+```cron
+# 0 * * * * /home/cassandrameijers/backups/backup-actual.sh
+```
+
 On the Pi, use `ACTUAL_SERVER_URL=http://host.docker.internal:5006` so helpers skip Cloudflare on long syncs.
+
+## Google Drive backup
+
+Same approach as [actualbudget-backup](https://github.com/rodriguestiago0/actualbudget-backup): export a zip with `@actual-app/api`, then `rclone copy` to Drive. It runs at the end of `run.sh`.
+
+One-time rclone setup on the Pi (needs a browser on your laptop):
+
+```bash
+mkdir -p ~/actual-helpers/rclone
+docker compose up -d
+docker exec -it actual-helpers rclone config
+```
+
+Create a remote named `ActualBudgetBackup`, type `drive`. When it asks “Use auto config?”, say **n** (the Pi has no browser). Open the printed URL on your Mac, sign in, paste the token back.
+
+Then:
+
+```bash
+docker exec actual-helpers rclone lsd ActualBudgetBackup:
+docker exec actual-helpers node jobs/backup.js
+```
+
+Zips land in Drive folder `backups/actual/` as `backup.<sync-id>.YYYYMMDD.zip`. Set `BACKUP_KEEP_DAYS` in `.env` (default 30).
 
 ## Browser SSH
 

@@ -1,13 +1,14 @@
 {
   "name": "actual-helpers",
   "private": true,
-  "description": "Consolidated Actual Budget helper jobs (SimpleFin, Plaid, Questrade, interest, zestimate)",
+  "description": "Consolidated Actual Budget helper jobs (SimpleFin, Plaid, Questrade, interest, zestimate, backup)",
   "scripts": {
     "simplefin": "node jobs/simplefin.js",
     "plaid": "node jobs/plaid.js",
     "questrade": "node jobs/questrade.js",
     "interest": "node jobs/interest.js",
     "zestimate": "node jobs/zestimate.js",
+    "backup": "node jobs/backup.js",
     "sync": "./run.sh"
   },
   "dependencies": {

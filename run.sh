@@ -55,6 +55,8 @@ if [ "$(date +%d)" = "05" ] || [ "$(date +%d)" = "20" ]; then
     run_sync "Zestimate" "$RUN jobs/zestimate.js"
 fi
 
+run_sync "Backup" "$RUN jobs/backup.js"
+
 # Interest is typically run on a separate schedule (loan interest day).
 # Uncomment or cron separately:
 # run_sync "Interest" "$RUN jobs/interest.js"
