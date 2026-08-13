@@ -50,13 +50,14 @@ run_sync "SimpleFin" "$RUN jobs/simplefin.js"
 run_sync "Plaid" "$RUN jobs/plaid.js"
 run_sync "Questrade" "$RUN jobs/questrade.js"
 
-# Monthly on the 5th and 20th
+# Mortgage interest - Monthly on the 1st
+if [ "$(date +%d)" = "01" ]; then
+    run_sync "Interest" "$RUN jobs/interest.js"
+fi
+
+# Zestimate - Monthly on the 5th and 20th
 if [ "$(date +%d)" = "05" ] || [ "$(date +%d)" = "20" ]; then
     run_sync "Zestimate" "$RUN jobs/zestimate.js"
 fi
 
 run_sync "Backup" "$RUN jobs/backup.js"
-
-# Interest is typically run on a separate schedule (loan interest day).
-# Uncomment or cron separately:
-# run_sync "Interest" "$RUN jobs/interest.js"

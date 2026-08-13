@@ -27,13 +27,13 @@ docker exec actual-helpers node jobs/questrade.js
 
 ```cron
 0 5 * * * /home/cassandrameijers/actual-helpers/run.sh
-30 4 1 * * docker exec actual-helpers node jobs/interest.js >> /home/cassandrameijers/actual-helpers/interest.log 2>&1
 ```
 
-Remove the old hourly backup once this job is working:
+Remove the old hourly backup and 1st-of-month interest crons once this is working:
 
 ```cron
 # 0 * * * * /home/cassandrameijers/backups/backup-actual.sh
+# 30 4 1 * * docker exec actual-helpers node jobs/interest.js >> /home/cassandrameijers/actual-helpers/interest.log 2>&1
 ```
 
 On the Pi, use `ACTUAL_SERVER_URL=http://host.docker.internal:5006` so helpers skip Cloudflare on long syncs.
