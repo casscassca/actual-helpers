@@ -32,6 +32,16 @@ docker exec actual-helpers node jobs/questrade.js
 
 On the Pi, use `ACTUAL_SERVER_URL=http://host.docker.internal:5006` so helpers skip Cloudflare on long syncs.
 
+## Browser SSH
+
+Tunnel: `ssh.jassie.us` → `ssh://localhost:22`. Then Cloudflare Zero Trust → Access → Applications → Self-hosted → hostname `ssh.jassie.us` → browser rendering SSH → allow your email.
+
+Open `https://ssh.jassie.us`. Cloudflare SSHs as the part before `@` in that email (must match the Pi username).
+
+## Deploy
+
+Push to `main` builds the image on GitHub, then the Pi’s self-hosted Actions runner runs `docker compose pull && up -d`.
+
 ## License
 
 `LICENSE` covers upstream MIT code this fork is based on. Keep it even for personal use.

@@ -3,8 +3,6 @@ name: Create and publish Docker image on GHCR
 on:
   push:
     branches: ['main']
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
@@ -18,11 +16,9 @@ concurrency:
 jobs:
   publish-docker-image:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,7 +36,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Set up QEMU
@@ -50,7 +45,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push the Docker image
-        id: push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -60,27 +54,17 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
 
-  # Pulls the new image onto the Pi right after publish.
-  # Required repo secrets: PI_SSH_HOST, PI_SSH_USER, PI_SSH_KEY
-  # Optional: PI_SSH_PORT (default 22), PI_HELPERS_DIR (default /home/cassandrameijers/actual-helpers)
+  # Runs on the Pi's existing GitHub Actions runner (no SSH, no extra service).
   deploy-pi:
     needs: publish-docker-image
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Deploy new image on Pi
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.PI_SSH_HOST }}
-          username: ${{ secrets.PI_SSH_USER }}
-          key: ${{ secrets.PI_SSH_KEY }}
-          port: ${{ secrets.PI_SSH_PORT || 22 }}
-          script_stop: true
-          script: |
-            set -euo pipefail
-            cd "${{ secrets.PI_HELPERS_DIR || '/home/cassandrameijers/actual-helpers' }}"
-            # Host files (compose, run.sh) when you push to main
-            git pull --ff-only || true
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
-            docker ps --filter name=actual-helpers --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
+      - name: Pull and recreate helpers
+        working-directory: /home/cassandrameijers/actual-helpers
+        run: |
+          set -euo pipefail
+          git pull --ff-only || true
+          docker compose pull
+          docker compose up -d
+          docker image prune -f
+          docker ps --filter name=actual-helpers --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
