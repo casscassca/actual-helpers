@@ -11,3 +11,5 @@ services:
       - ./data:/usr/src/app/data
       # Plaid Conf (access tokens + Actual account mappings)
       - ${HOME}/.config/actualplaid-cli-nodejs:/home/node/.config/actualplaid-cli-nodejs
+      # rclone.conf for Google Drive backups
+      - ./rclone:/home/node/.config/rclone

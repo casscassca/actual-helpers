@@ -8,7 +8,8 @@ RUN apt-get update -qq -y && \
         libgtk-4-1 \
         libnss3 \
         xdg-utils \
-        wget && \
+        wget \
+        unzip && \
     wget -q -O chrome-linux64.zip https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.204/linux64/chrome-linux64.zip && \
     unzip chrome-linux64.zip && \
     rm chrome-linux64.zip && \
@@ -18,6 +19,18 @@ RUN apt-get update -qq -y && \
     unzip -j chromedriver-linux64.zip chromedriver-linux64/chromedriver && \
     rm chromedriver-linux64.zip && \
     mv chromedriver /usr/local/bin/
+
+# rclone for Google Drive backups (linux/amd64 + linux/arm64)
+RUN ARCH=$(dpkg --print-architecture) && \
+    case "$ARCH" in \
+      amd64) RARCH=amd64 ;; \
+      arm64) RARCH=arm64 ;; \
+      *) echo "unsupported arch: $ARCH" && exit 1 ;; \
+    esac && \
+    wget -q -O /tmp/rclone.zip "https://downloads.rclone.org/rclone-current-linux-${RARCH}.zip" && \
+    unzip -j /tmp/rclone.zip '*/rclone' -d /usr/local/bin && \
+    chmod +x /usr/local/bin/rclone && \
+    rm /tmp/rclone.zip
 
 # Don't run as root
 USER node
