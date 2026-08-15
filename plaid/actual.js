@@ -201,14 +201,20 @@ function formatLastUpdated(date = new Date()) {
     });
 }
 
+function replaceLastUpdatedStamp(note, date = new Date()) {
+    const stamp = `last_updated:${formatLastUpdated(date)}`;
+    const existing = note || '';
+    if (/\blast_updated:[^\n]*/.test(existing)) {
+        return existing.replace(/\blast_updated:[^\n]*/, stamp);
+    }
+    return existing ? `${existing}\n${stamp}` : stamp;
+}
+
 async function stampAccountLastUpdated(actualInstance, accountId) {
     const noteId = `account-${accountId}`;
     const row = await actualInstance.getNote(noteId);
-    const existing = ((row && row.note) || '')
-        .replace(/\s*\blast_updated:.+$/, '')
-        .trim();
-    const stamp = `last_updated:${formatLastUpdated()}`;
-    await actualInstance.updateNote(noteId, existing ? `${existing} ${stamp}` : stamp);
+    const existing = (row && row.note) || '';
+    await actualInstance.updateNote(noteId, replaceLastUpdatedStamp(existing));
 }
 
 // Only renames accounts that already start with ✓ or Ｘ.

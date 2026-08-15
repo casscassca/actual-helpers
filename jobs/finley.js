@@ -3,9 +3,9 @@ const api = require('@actual-app/api');
 const path = require('path');
 const {
   closeBudget,
-  formatLastUpdated,
   getAccountNote,
   openBudget,
+  replaceLastUpdatedStamp,
   setAccountNote,
   stripSyncPrefix,
 } = require('../lib/actual');
@@ -71,14 +71,14 @@ async function fetchKbbDollars(kbbUrl, miles) {
 }
 
 async function stampMileage(account, miles) {
-  const existing = ((await getAccountNote(account)) || '')
-    .replace(/\s*\bmileage:\S+/g, '')
-    .replace(/\s*\blast_updated:.+$/, '')
-    .trim();
-  const note = [`mileage:${miles}`, existing, `last_updated:${formatLastUpdated()}`]
-    .filter(Boolean)
-    .join(' ');
-  await setAccountNote(account, note);
+  let note = (await getAccountNote(account)) || '';
+  const mileage = `mileage:${miles}`;
+  if (/\bmileage:\S+/.test(note)) {
+    note = note.replace(/\bmileage:\S+/, mileage);
+  } else {
+    note = note ? `${mileage}\n${note}` : mileage;
+  }
+  await setAccountNote(account, replaceLastUpdatedStamp(note));
 }
 
 function findFinley(accounts) {
