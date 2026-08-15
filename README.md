@@ -1,12 +1,12 @@
 # actual-helpers
 
-Personal Actual Budget sync jobs (SimpleFin, Plaid, Questrade, interest, Zestimate, Google Drive backup).
+Personal Actual Budget sync jobs (SimpleFin, Guideline, Plaid, Questrade, interest, Zestimate, Google Drive backup).
 
 ## Layout
 
 ```text
 run.sh              cron entrypoint (HA notify on failure)
-jobs/               simplefin, plaid, questrade, interest, zestimate, servicemac, finley, backup
+jobs/               simplefin, guideline, plaid, questrade, interest, zestimate, servicemac, finley, backup
 plaid/              Plaid Link CLI + UI
 lib/actual.js       shared Actual helpers
 data/               Questrade token files (gitignored)
@@ -20,6 +20,7 @@ docker-compose.yml  Pi container
 ```bash
 ./run.sh
 docker exec actual-helpers node jobs/simplefin.js
+docker exec actual-helpers node jobs/guideline.js
 docker exec actual-helpers node jobs/plaid.js status
 docker exec -it actual-helpers node jobs/plaid.js update "Guideline"
 docker exec actual-helpers node jobs/questrade.js

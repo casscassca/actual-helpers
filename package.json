@@ -9,6 +9,7 @@
     "interest": "node jobs/interest.js",
     "zestimate": "node jobs/zestimate.js",
     "servicemac": "node jobs/servicemac.js",
+    "guideline": "node jobs/guideline.js",
     "finley": "node jobs/finley.js",
     "backup": "node jobs/backup.js",
     "sync": "./run.sh"
@@ -25,6 +26,7 @@
     "inquirer": "^7.3.3",
     "jsdom": "^24.1.0",
     "meow": "^7.0.1",
+    "otpauth": "^9.5.1",
     "plaid": "^23.0.0",
     "readline-sync": "^1.4.10",
     "selenium-webdriver": "^4.27.0",

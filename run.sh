@@ -47,6 +47,7 @@ run_sync() {
 echo "=== $(date) ===" >> "$LOG"
 
 run_sync "SimpleFin" "$RUN jobs/simplefin.js"
+run_sync "Guideline" "$RUN jobs/guideline.js"
 run_sync "Plaid" "$RUN jobs/plaid.js"
 run_sync "Questrade" "$RUN jobs/questrade.js"
 
