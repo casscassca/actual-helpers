@@ -8,13 +8,6 @@ const {
 } = require('../lib/actual');
 const api = require('@actual-app/api');
 
-const FAIL_STATUSES = new Set([
-  'failed',
-  'reauth-required',
-  'rate-limit-exceeded',
-  'timed-out',
-]);
-
 (async () => {
   await openBudget();
   console.log("syncing banks...");
@@ -27,7 +20,8 @@ const FAIL_STATUSES = new Set([
     process.exitCode = 1;
   }
 
-  // Per-account: stamp notes + flip ✓/Ｘ from Actual's last_sync / bank_sync_status.
+  // Per-account: stamp notes + flip ✓/Ｘ from whether last_sync updated this run.
+  // Any linked account that did not sync gets Ｘ (status is logged for diagnosis).
   const cutoff = Date.now() - 10 * 60 * 1000;
   const result = await api.runQuery(
     api.q('accounts')
@@ -44,9 +38,9 @@ const FAIL_STATUSES = new Set([
       await stampAccountLastUpdated(account);
       await setSyncStatusPrefix(account, true);
       console.log(`OK ${account.name}`);
-    } else if (FAIL_STATUSES.has(account.bank_sync_status)) {
+    } else {
       await setSyncStatusPrefix(account, false);
-      console.log(`FAIL ${account.name} (${account.bank_sync_status})`);
+      console.log(`FAIL ${account.name} (${account.bank_sync_status || 'no-sync'})`);
     }
   }
 
