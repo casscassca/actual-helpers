@@ -56,11 +56,12 @@ if [ "$(date +%d)" = "01" ]; then
     run_sync "Interest" "$RUN jobs/interest.js"
 fi
 
-# Zestimate + ServiceMac + Finley (KBB/HA) - 5th and 20th
+# Zestimate + ServiceMac + Finley + CAD Home - 5th and 20th
 if [ "$(date +%d)" = "05" ] || [ "$(date +%d)" = "20" ]; then
     run_sync "Zestimate" "$RUN jobs/zestimate.js"
     run_sync "ServiceMac" "$RUN jobs/servicemac.js"
     run_sync "Finley" "$RUN jobs/finley.js"
+    run_sync "CAD Home" "$RUN jobs/cadhome.js"
 fi
 
 run_sync "Backup" "$RUN jobs/backup.js"

@@ -10,6 +10,7 @@
     "zestimate": "node jobs/zestimate.js",
     "servicemac": "node jobs/servicemac.js",
     "guideline": "node jobs/guideline.js",
+    "cadhome": "node jobs/cadhome.js",
     "finley": "node jobs/finley.js",
     "backup": "node jobs/backup.js",
     "sync": "./run.sh"

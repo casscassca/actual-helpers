@@ -6,7 +6,7 @@ Personal Actual Budget sync jobs (SimpleFin, Guideline, Plaid, Questrade, intere
 
 ```text
 run.sh              cron entrypoint (HA notify on failure)
-jobs/               simplefin, guideline, plaid, questrade, interest, zestimate, servicemac, finley, backup
+jobs/               simplefin, guideline, plaid, questrade, interest, zestimate, servicemac, finley, cadhome, backup
 plaid/              Plaid Link CLI + UI
 lib/actual.js       shared Actual helpers
 data/               Questrade token files (gitignored)
@@ -24,6 +24,7 @@ docker exec actual-helpers node jobs/guideline.js
 docker exec actual-helpers node jobs/plaid.js status
 docker exec -it actual-helpers node jobs/plaid.js update "Guideline"
 docker exec actual-helpers node jobs/questrade.js
+docker exec actual-helpers node jobs/cadhome.js
 ```
 
 ```cron
