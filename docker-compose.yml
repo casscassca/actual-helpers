@@ -3,6 +3,7 @@ services:
     container_name: actual-helpers
     image: ghcr.io/casscassca/actual-helpers:latest
     env_file: .env
+    restart: unless-stopped
     extra_hosts:
       # Reach Actual on the Pi host (:5006) without Cloudflare
       - "host.docker.internal:host-gateway"
