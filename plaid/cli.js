@@ -283,62 +283,62 @@ module.exports = async (command, flags, target) => {
                     continue;
                 }
 
-                const startDate = dateFns.format(
-                    new Date(
-                        flags["since"] ||
-                        account.lastImport ||
-                        await getLastTransactionDate(actual, actualId)
-                    ),
-                    "yyyy-MM-dd"
-                );
+                const startDate = flags["since"]
+                    ? dateFns.format(new Date(flags["since"]), "yyyy-MM-dd")
+                    : dateFns.format(
+                        dateFns.min([
+                            new Date(
+                                account.lastImport ||
+                                await getLastTransactionDate(actual, actualId)
+                            ),
+                            dateFns.subDays(new Date(), 7),
+                        ]),
+                        "yyyy-MM-dd"
+                    );
 
                 const isInvestment = account.plaidAccount.type === 'investment';
 
-                if (startDate === endDate && !isInvestment) {
-                    console.log("Skipping: ", account.plaidAccount.name, "because it was already imported today")
-                } else {
-                    console.log("Importing transactions for account: ", account.plaidAccount.name, "from ", startDate, "to", endDate)
+                console.log("Importing transactions for account: ", account.plaidAccount.name, "from ", startDate, "to", endDate)
 
+                try {
+                    let plaidBalance = null;
                     try {
-                        let plaidBalance = null;
-                        try {
-                            const balanceResponse = await plaidClient.accountsBalanceGet({
-                                access_token: account.plaidToken,
-                                options: {
-                                    account_ids: [account.plaidAccount.account_id],
-                                }
-                            });
-                            const rawBalance = balanceResponse.data.accounts[0]?.balances.current;
-                            plaidBalance = rawBalance != null ? Math.round(rawBalance * 100) : null;
-                        } catch (e) {
-                            if (isLoginRequired(e)) throw e;
-                            console.warn("Could not fetch Plaid balance for", account.plaidAccount.name, "- skipping balance update:", e.message);
-                        }
-
-                        if (!isInvestment) {
-                            const tempStartTime = new Date();
-                            const transactionsResponse = await cachedTransaction(account.plaidToken, startDate);
-                            const transactionsForThisAccount = transactionsResponse.data.transactions.filter(
-                                (transaction) =>
-                                    transaction.account_id === account.plaidAccount.account_id
-                            );
-                            const timeTookForPlaid = new Date() - tempStartTime;
-                            const timeToSleep = 2000 - timeTookForPlaid;
-                            if (timeToSleep > 0) {
-                                await new Promise((resolve) => setTimeout(resolve, timeToSleep));
+                        const balanceResponse = await plaidClient.accountsBalanceGet({
+                            access_token: account.plaidToken,
+                            options: {
+                                account_ids: [account.plaidAccount.account_id],
                             }
-                            await importPlaidTransactions(actual, actualId, account.plaidBankName, transactionsForThisAccount, plaidBalance);
-                        } else {
-                            await importPlaidTransactions(actual, actualId, account.plaidBankName, [], plaidBalance);
-                        }
-
-                        config.set(`actualSync.${actualId}.lastImport`, new Date());
+                        });
+                        const rawBalance = balanceResponse.data.accounts[0]?.balances.current;
+                        plaidBalance = rawBalance != null ? Math.round(rawBalance * 100) : null;
                     } catch (e) {
-                        await setSyncStatusPrefix(actual, actualId, false);
-                        if (!isLoginRequired(e)) throw e;
-                        needsReauth.add(account.plaidBankName);
-                        console.warn(`Skipping ${account.plaidBankName}: ${reauthHint(account.plaidBankName)}`);
+                        if (isLoginRequired(e)) throw e;
+                        console.warn("Could not fetch Plaid balance for", account.plaidAccount.name, "- skipping balance update:", e.message);
                     }
+
+                    if (!isInvestment) {
+                        const tempStartTime = new Date();
+                        const transactionsResponse = await cachedTransaction(account.plaidToken, startDate);
+                        const transactionsForThisAccount = transactionsResponse.data.transactions.filter(
+                            (transaction) =>
+                                transaction.account_id === account.plaidAccount.account_id
+                        );
+                        const timeTookForPlaid = new Date() - tempStartTime;
+                        const timeToSleep = 2000 - timeTookForPlaid;
+                        if (timeToSleep > 0) {
+                            await new Promise((resolve) => setTimeout(resolve, timeToSleep));
+                        }
+                        await importPlaidTransactions(actual, actualId, account.plaidBankName, transactionsForThisAccount, plaidBalance);
+                    } else {
+                        await importPlaidTransactions(actual, actualId, account.plaidBankName, [], plaidBalance);
+                    }
+
+                    config.set(`actualSync.${actualId}.lastImport`, new Date());
+                } catch (e) {
+                    await setSyncStatusPrefix(actual, actualId, false);
+                    if (!isLoginRequired(e)) throw e;
+                    needsReauth.add(account.plaidBankName);
+                    console.warn(`Skipping ${account.plaidBankName}: ${reauthHint(account.plaidBankName)}`);
                 }
             }
 
