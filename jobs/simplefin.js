@@ -12,16 +12,30 @@ const api = require('@actual-app/api');
   await openBudget();
   console.log("syncing banks...");
 
-  try {
-    await api.runBankSync();
+  const listed = await api.runQuery(
+    api.q('accounts')
+      .filter({ closed: false })
+      .select(['id', 'name', 'account_sync_source'])
+  );
+  const linked = listed.data.filter((account) => account.account_sync_source === 'simpleFin');
+
+  let hadError = false;
+  for (const account of linked) {
+    try {
+      await api.runBankSync({ accountId: account.id });
+      console.log(`synced ${account.name}`);
+    } catch (err) {
+      hadError = true;
+      console.error(`Bank sync failed for ${account.name}: ${err.message}`);
+    }
+  }
+
+  if (!hadError) {
     console.log("Bank sync completed successfully");
-  } catch (err) {
-    console.error(`Bank sync completed with errors: ${err.message}`);
+  } else {
     process.exitCode = 1;
   }
 
-  // Per-account: stamp notes + flip ✓/Ｘ from whether last_sync updated this run.
-  // Any linked account that did not sync gets Ｘ (status is logged for diagnosis).
   const cutoff = Date.now() - 10 * 60 * 1000;
   const result = await api.runQuery(
     api.q('accounts')
@@ -29,7 +43,7 @@ const api = require('@actual-app/api');
       .select(['id', 'name', 'last_sync', 'account_sync_source', 'bank_sync_status'])
   );
   for (const account of result.data) {
-    if (!account.account_sync_source) continue;
+    if (account.account_sync_source !== 'simpleFin') continue;
 
     const lastSync = account.last_sync ? parseInt(account.last_sync, 10) : NaN;
     const syncedThisRun = !Number.isNaN(lastSync) && lastSync >= cutoff;
