@@ -3,10 +3,30 @@
 const {
   closeBudget,
   openBudget,
+  sleep,
   stampAccountLastUpdated,
   setSyncStatusPrefix,
 } = require('../lib/actual');
 const api = require('@actual-app/api');
+
+async function syncAccount(account) {
+  try {
+    await api.runBankSync({ accountId: account.id });
+    console.log(`synced ${account.name}`);
+    return true;
+  } catch (err) {
+    console.warn(`Bank sync failed for ${account.name}, retrying in 30s: ${err.message}`);
+    await sleep(30_000);
+    try {
+      await api.runBankSync({ accountId: account.id });
+      console.log(`synced ${account.name} (retry)`);
+      return true;
+    } catch (retryErr) {
+      console.error(`Bank sync failed for ${account.name}: ${retryErr.message}`);
+      return false;
+    }
+  }
+}
 
 (async () => {
   await openBudget();
@@ -21,13 +41,8 @@ const api = require('@actual-app/api');
 
   let hadError = false;
   for (const account of linked) {
-    try {
-      await api.runBankSync({ accountId: account.id });
-      console.log(`synced ${account.name}`);
-    } catch (err) {
-      hadError = true;
-      console.error(`Bank sync failed for ${account.name}: ${err.message}`);
-    }
+    const ok = await syncAccount(account);
+    if (!ok) hadError = true;
   }
 
   if (!hadError) {
