@@ -22,7 +22,7 @@ notify() {
     curl -s -X POST -H "Authorization: Bearer $HA_TOKEN" \
         -H "Content-Type: application/json" \
         -d "{\"message\":\"💰 $1 sync failed\",\"title\":\"Budget Sync\"}" \
-        http://192.168.5.165:8123/api/services/notify/mobile_app_pixel > /dev/null
+        http://192.168.5.166:8123/api/services/notify/mobile_app_pixel > /dev/null
 }
 
 run_sync() {
