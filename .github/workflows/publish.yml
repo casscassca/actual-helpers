@@ -1,8 +1,10 @@
-name: Create and publish Docker image on GHCR
+name: Publish and deploy to NAS
 
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
+  schedule:
+    - cron: "0 23 * * *"
   workflow_dispatch:
 
 env:
@@ -10,11 +12,40 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 concurrency:
-  group: 'docker'
+  group: docker
   cancel-in-progress: true
 
 jobs:
+  get-version:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+
+      - name: Fetch release version
+        run: |
+          curl -sL https://api.github.com/repos/actualbudget/actual/releases/latest | \
+          jq -r ".tag_name" > actual-latest.txt
+
+      - name: Check for modified files
+        id: git-check
+        run: echo "modified=$([ -z "$(git status --porcelain)" ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit latest release version
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git config user.name "Cassandra Meijers"
+          git config user.email "cassandra.meijers@gmail.com"
+          git commit -am "chore(actual): record latest actual release"
+          git push
+
   publish-docker-image:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,9 +69,6 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -52,18 +80,18 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
-  # Runs on the Pi's existing GitHub Actions runner (no SSH, no extra service).
-  deploy-pi:
+  deploy-nas:
     needs: publish-docker-image
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: self-hosted
     steps:
       - name: Pull and recreate helpers
-        working-directory: /home/cassandrameijers/actual-helpers
+        working-directory: /volume1/docker/actual-helpers
         run: |
           set -euo pipefail
-          git pull --ff-only || true
+          git pull --ff-only
           docker compose pull
           docker compose up -d
           docker image prune -f
